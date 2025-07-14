@@ -1,6 +1,7 @@
 "use client";
 import { supabase } from '@/Services/SupabaseClient';
-import React ,{useEffect, useState} from 'react'
+import React ,{useEffect, useState, useContext} from 'react'
+import { userDetailContext } from '@/context/UserDetailContext';
 
 function Provider  ({children})  {
 
@@ -13,6 +14,10 @@ function Provider  ({children})  {
 
         supabase.auth.getUser().then(async({data:{user}}) => {
 
+        console.log("Supabase auth user:", user);
+        console.log("User metadata name:", user?.user_metadata?.name);
+        console.log("User metadata picture:", user?.user_metadata?.picture);
+
         // Logic to check if user exists
 
     let { data: users, error } = await supabase
@@ -20,21 +25,22 @@ function Provider  ({children})  {
      .select('*')
      .eq('email', user?.email)
     
-     console.log(users)
+     console.log("Users from DB:", users)
      // if not exists, create a new user
      if(users?.length === 0) {
         const { data, error } =  await supabase.from('users')
         .insert([
           { email: user?.email, 
-            username: user?.user_metadata?.user_name
-            //  profile: user?.user_metadata?.profile_pic
+            name: user?.user_metadata?.name,
+            picture: user?.user_metadata?.picture
              }
         ])
-        console.log(data)
+        console.log("Inserted data:", data)
         setUser(data);
         return data;
      } 
      setUser(users[0]);
+     console.log("User set in context:", users[0]);
     })
 }
   return (
